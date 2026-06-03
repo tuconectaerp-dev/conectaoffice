@@ -1,0 +1,26 @@
+ACUERDO DE LICENCIA DE USO — ConectaOffice
+ConectaERP © 2025. Todos los derechos reservados.
+
+Este software es propiedad de ConectaERP. El uso de este software
+está sujeto a los siguientes términos:
+
+1. LICENCIA DE USO
+   Cada licencia autoriza la instalación y uso en hasta 5 (cinco) equipos.
+   Al superar ese límite, la licencia queda bloqueada automáticamente.
+
+2. ACTIVACIÓN
+   El software requiere activación en línea contra los servidores de ConectaERP.
+   La verificación de licencia se realiza periódicamente.
+   Sin conexión a internet válida, el acceso quedará suspendido.
+
+3. RESTRICCIONES
+   Queda prohibido redistribuir, copiar, modificar o descompilar
+   este software sin autorización escrita de ConectaERP.
+
+4. SOPORTE
+   Para soporte técnico contacte a: soporte@conectaerp.com
+
+5. LIMITACIÓN DE RESPONSABILIDAD
+   El software se provee "tal como es" sin garantías de ningún tipo.
+
+Al instalar este software, usted acepta estos términos.
