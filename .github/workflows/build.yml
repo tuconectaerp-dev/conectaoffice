@@ -13,29 +13,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download WebView2 SDK
+      - name: Install WebView2 via NuGet
         shell: powershell
         run: |
-          New-Item -ItemType Directory -Force -Path launcher\packages
-          Invoke-WebRequest -Uri "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/1.0.2849.39" -OutFile "launcher\webview2.nupkg"
-          Expand-Archive -Path "launcher\webview2.nupkg" -DestinationPath "launcher\packages\Microsoft.Web.WebView2" -Force
+          Invoke-WebRequest -Uri "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe" -OutFile nuget.exe
+          .\nuget.exe install Microsoft.Web.WebView2 -Version 1.0.2849.39 -OutputDirectory launcher\packages -NonInteractive
 
       - name: Compile ConectaOffice.exe
         shell: powershell
         run: |
           $csc = Get-ChildItem "$env:WINDIR\Microsoft.NET\Framework64" -Filter csc.exe -Recurse | Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty FullName
-          Write-Host "Using CSC: $csc"
-          $wv_forms = "launcher\packages\Microsoft.Web.WebView2\lib\net45\Microsoft.Web.WebView2.WinForms.dll"
-          $wv_core  = "launcher\packages\Microsoft.Web.WebView2\lib\net45\Microsoft.Web.WebView2.Core.dll"
+          Write-Host "CSC: $csc"
+          $pkg = "launcher\packages\Microsoft.Web.WebView2.1.0.2849.39"
+          $wv_forms = "$pkg\lib\net45\Microsoft.Web.WebView2.WinForms.dll"
+          $wv_core  = "$pkg\lib\net45\Microsoft.Web.WebView2.Core.dll"
           & $csc /target:winexe /out:assets\ConectaOffice.exe /win32icon:assets\icon.ico /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:$wv_forms /r:$wv_core launcher\ConectaOffice.cs
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
       - name: Copy WebView2 DLLs
         shell: powershell
         run: |
-          Copy-Item "launcher\packages\Microsoft.Web.WebView2\lib\net45\Microsoft.Web.WebView2.WinForms.dll" assets\
-          Copy-Item "launcher\packages\Microsoft.Web.WebView2\lib\net45\Microsoft.Web.WebView2.Core.dll" assets\
-          Copy-Item "launcher\packages\Microsoft.Web.WebView2\runtimes\win-x64\native\WebView2Loader.dll" assets\
+          $pkg = "launcher\packages\Microsoft.Web.WebView2.1.0.2849.39"
+          Copy-Item "$pkg\lib\net45\Microsoft.Web.WebView2.WinForms.dll" assets\
+          Copy-Item "$pkg\lib\net45\Microsoft.Web.WebView2.Core.dll" assets\
+          Copy-Item "$pkg\runtimes\win-x64\native\WebView2Loader.dll" assets\
 
       - name: Install NSIS
         shell: powershell
