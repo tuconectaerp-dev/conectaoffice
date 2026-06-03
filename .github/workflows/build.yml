@@ -13,11 +13,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '4.8.x'
-
       - name: Download WebView2 SDK
         shell: powershell
         run: |
@@ -26,28 +21,29 @@ jobs:
           Expand-Archive -Path "launcher\webview2.nupkg" -DestinationPath "launcher\packages\Microsoft.Web.WebView2" -Force
 
       - name: Compile ConectaOffice.exe
-        shell: cmd
+        shell: powershell
         run: |
-          for /d %%d in ("%WINDIR%\Microsoft.NET\Framework64\v4*") do set CSC=%%d\csc.exe
-          %CSC% /target:winexe /out:assets\ConectaOffice.exe /win32icon:assets\icon.ico /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:"launcher\packages\Microsoft.Web.WebView2\lib\net45\Microsoft.Web.WebView2.WinForms.dll" /r:"launcher\packages\Microsoft.Web.WebView2\lib\net45\Microsoft.Web.WebView2.Core.dll" launcher\ConectaOffice.cs
+          $csc = Get-ChildItem "$env:WINDIR\Microsoft.NET\Framework64" -Filter csc.exe -Recurse | Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty FullName
+          Write-Host "Using CSC: $csc"
+          $wv_forms = "launcher\packages\Microsoft.Web.WebView2\lib\net45\Microsoft.Web.WebView2.WinForms.dll"
+          $wv_core  = "launcher\packages\Microsoft.Web.WebView2\lib\net45\Microsoft.Web.WebView2.Core.dll"
+          & $csc /target:winexe /out:assets\ConectaOffice.exe /win32icon:assets\icon.ico /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:$wv_forms /r:$wv_core launcher\ConectaOffice.cs
+          if ($LASTEXITCODE -ne 0) { exit 1 }
 
       - name: Copy WebView2 DLLs
-        shell: cmd
+        shell: powershell
         run: |
-          copy /Y "launcher\packages\Microsoft.Web.WebView2\lib\net45\Microsoft.Web.WebView2.WinForms.dll" assets\
-          copy /Y "launcher\packages\Microsoft.Web.WebView2\lib\net45\Microsoft.Web.WebView2.Core.dll" assets\
-          copy /Y "launcher\packages\Microsoft.Web.WebView2\runtimes\win-x64\native\WebView2Loader.dll" assets\
+          Copy-Item "launcher\packages\Microsoft.Web.WebView2\lib\net45\Microsoft.Web.WebView2.WinForms.dll" assets\
+          Copy-Item "launcher\packages\Microsoft.Web.WebView2\lib\net45\Microsoft.Web.WebView2.Core.dll" assets\
+          Copy-Item "launcher\packages\Microsoft.Web.WebView2\runtimes\win-x64\native\WebView2Loader.dll" assets\
 
       - name: Install NSIS
         shell: powershell
-        run: |
-          choco install nsis -y
-          refreshenv
+        run: choco install nsis -y
 
       - name: Build NSIS Installer
         shell: cmd
-        run: |
-          "C:\Program Files (x86)\NSIS\makensis.exe" ConectaOffice-Setup.nsi
+        run: '"C:\Program Files (x86)\NSIS\makensis.exe" ConectaOffice-Setup.nsi'
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
